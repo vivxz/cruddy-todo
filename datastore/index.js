@@ -10,7 +10,6 @@ var items = {};
 exports.create = (text, callback) => {
   // console.log('DATADIR', exports.dataDir);
   counter.getNextUniqueId((err, id) => {
-    items[id] = text;
     fs.writeFile(exports.dataDir + `/${id}.txt`, text, (err) => {
       if (err) {
         throw ('')
@@ -26,19 +25,32 @@ exports.create = (text, callback) => {
 };
 
 exports.readAll = (callback) => {
-  var data = _.map(items, (text, id) => {
-    return { id, text };
-  });
-  callback(null, data);
+  fs.readdir(exports.dataDir, (err, data) => {
+    if (err){
+      callback(err);
+    } else{
+      console.log(_.map(items, (text, id) => {
+        return { id, text };
+      }));
+
+      if (data.length === 0){
+        callback([]);
+      } else {
+        console.log(data);
+        callback(null, data);
+      }
+    }
+  })
 };
 
 exports.readOne = (id, callback) => {
-  var text = items[id];
-  if (!text) {
-    callback(new Error(`No item with id: ${id}`));
-  } else {
-    callback(null, { id, text });
-  }
+  fs.readFile(exports.dataDir + `/${id}.txt`, 'utf8', (err, text) => {
+    if (err){
+      callback(new Error(`No item with id: ${id}`));
+    } else {
+      callback(null, { id, text });
+    }
+  })
 };
 
 exports.update = (id, text, callback) => {
